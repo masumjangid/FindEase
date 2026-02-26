@@ -8,20 +8,25 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAdmin } = useAuth();
 
+  const isDark = theme === "dark";
+  const logoSrc = isDark ? "/fe-logo-dark.png" : "/fe-logo-light.png";
+
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-1.5">
-          <div className="grid size-8 place-items-center rounded-xl bg-slate-900 text-white shadow-soft dark:bg-white dark:text-slate-900">
-            FE
-          </div>
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <img
+            src={logoSrc}
+            alt="FindEase logo"
+            className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9 md:h-10 md:w-10"
+          />
           <div className="leading-tight">
             <div className="text-sm font-semibold">FindEase</div>
             <div className="text-xs text-slate-500 dark:text-slate-400">Lost &amp; Found</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {user ? (
             <>
               <span className="hidden max-w-[140px] truncate text-sm text-slate-600 sm:inline dark:text-slate-300" title={user.email}>
@@ -76,4 +81,3 @@ export default function Navbar() {
     </header>
   );
 }
-
