@@ -37,10 +37,15 @@ function ClaimModal({ item, onClose, onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!message.trim()) return;
+    const contactDigits = (contactInfo || "").replace(/\D/g, "");
+    if (contactDigits.length !== 10) {
+      setError("Contact number is required and must be exactly 10 digits.");
+      return;
+    }
     setError("");
     setSubmitting(true);
     try {
-      await createClaim(item._id, message.trim(), contactInfo.trim());
+      await createClaim(item._id, message.trim(), contactDigits);
       onSuccess?.();
       onClose();
     } catch (err) {
@@ -78,13 +83,16 @@ function ClaimModal({ item, onClose, onSuccess }) {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Contact (optional)</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Contact number *</span>
             <input
               type="text"
+              inputMode="numeric"
+              maxLength={10}
               value={contactInfo}
-              onChange={(e) => setContactInfo(e.target.value)}
+              onChange={(e) => setContactInfo(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              required
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-              placeholder="Phone or extra email"
+              placeholder="1234567890"
             />
           </label>
           <div className="flex gap-2 pt-2">
@@ -163,6 +171,7 @@ function ItemCard({ item, onClaim, isLoggedIn }) {
         </div>
 
         <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
+        <p className="mt-1 text-[11px] text-slate-500 italic dark:text-slate-400">Someone lost this.</p>
 
         <div className="mt-4 flex items-center justify-between gap-2">
           <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -231,6 +240,8 @@ export default function Dashboard() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((i) => {
+      const type = (i.reportedAs || "lost").toLowerCase();
+      if (type === "found") return false;
       const matchCategory = category === "All" ? true : (i.category || "").toLowerCase() === category.toLowerCase();
       const locDisplay = getDisplayLocation(i);
       const matchLocation =

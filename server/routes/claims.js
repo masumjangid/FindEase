@@ -22,6 +22,11 @@ router.post("/", ensureDbReady, verifyToken, async (req, res) => {
       return res.status(400).json({ message: "itemId and message are required." });
     }
 
+    const contactDigits = String(contactInfo || "").replace(/\D/g, "");
+    if (contactDigits.length !== 10) {
+      return res.status(400).json({ message: "Contact number is required and must be exactly 10 digits." });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(itemId)) {
       return res.status(400).json({ message: "Invalid item id." });
     }
@@ -34,7 +39,7 @@ router.post("/", ensureDbReady, verifyToken, async (req, res) => {
       item: item._id,
       claimedBy: req.user._id,
       message: message.trim(),
-      contactInfo: (contactInfo || "").trim(),
+      contactInfo: contactDigits,
     });
 
     const populated = await Claim.findById(claim._id)

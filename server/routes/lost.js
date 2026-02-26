@@ -13,10 +13,19 @@ function ensureDbReady(req, res, next) {
   next();
 }
 
-// Add lost item (authenticated user only); starts as not approved
+// Add item (lost or found, authenticated user only); starts as not approved
 router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
   try {
-    const { name, category, description, image, location, locationOtherText, locationSupportingText } = req.body || {};
+    const {
+      name,
+      category,
+      description,
+      image,
+      location,
+      locationOtherText,
+      locationSupportingText,
+      reportedAs,
+    } = req.body || {};
 
     if (!name?.trim() || !category?.trim() || !description?.trim()) {
       return res.status(400).json({ message: "name, category, and description are required." });
@@ -24,11 +33,17 @@ router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
 
     const loc = (location && typeof location === "string") ? location.trim() : "";
     const locOther = (locationOtherText && typeof locationOtherText === "string") ? locationOtherText.trim() : "";
-    const locSupport = (locationSupportingText && typeof locationSupportingText === "string") ? locationSupportingText.trim() : "";
+    const locSupport =
+      locationSupportingText && typeof locationSupportingText === "string"
+        ? locationSupportingText.trim()
+        : "";
 
     if (loc.toLowerCase() === "other" && !locOther) {
       return res.status(400).json({ message: "Please specify the location when 'Other' is selected." });
     }
+
+    const type = typeof reportedAs === "string" ? reportedAs.trim().toLowerCase() : "lost";
+    const safeType = type === "found" ? "found" : "lost";
 
     const item = await LostItem.create({
       name: name.trim(),
@@ -38,6 +53,7 @@ router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
       location: loc,
       locationOtherText: locOther,
       locationSupportingText: locSupport,
+      reportedAs: safeType,
       approved: false,
       createdBy: req.user._id,
     });

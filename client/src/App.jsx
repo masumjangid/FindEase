@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import ReportLost from "./pages/ReportLost.jsx";
+import ReportFound from "./pages/ReportFound.jsx";
 import FoundItems from "./pages/FoundItems.jsx";
 import MyReports from "./pages/MyReports.jsx";
 import Settings from "./pages/Settings.jsx";
@@ -19,6 +20,7 @@ export default function App() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/report-lost" element={<ProtectedRoute><ReportLost /></ProtectedRoute>} />
+        <Route path="/report-found" element={<ProtectedRoute><ReportFound /></ProtectedRoute>} />
         <Route path="/found-items" element={<FoundItems />} />
         <Route path="/my-reports" element={<ProtectedRoute><MyReports /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { ImageWithPreview } from "../components/ImageLightbox.jsx";
-import { addLostItem } from "../lib/api.js";
+import { addFoundItem } from "../lib/api.js";
 
 const CATEGORIES = ["Electronics", "ID Cards", "Books", "Clothing", "Accessories", "Other"];
 
@@ -28,7 +28,7 @@ function fileToDataUrl(file) {
   });
 }
 
-export default function ReportLost() {
+export default function ReportFound() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [description, setDescription] = useState("");
@@ -81,7 +81,7 @@ export default function ReportLost() {
         image = typeof dataUrl === "string" ? dataUrl : "";
       }
 
-      await addLostItem({
+      await addFoundItem({
         name: name.trim(),
         category: category.trim(),
         description: description.trim(),
@@ -91,7 +91,10 @@ export default function ReportLost() {
         locationSupportingText: locationSupportingText.trim() || undefined,
       });
 
-      setAlert({ type: "success", message: "Report submitted. It will appear on the dashboard after admin approval." });
+      setAlert({
+        type: "success",
+        message: "Found item reported. After admin approval it will appear for others to claim.",
+      });
       setName("");
       setCategory(CATEGORIES[0]);
       setDescription("");
@@ -103,7 +106,7 @@ export default function ReportLost() {
     } catch (err) {
       setAlert({
         type: "error",
-        message: err?.response?.data?.message || "Failed to submit report."
+        message: err?.response?.data?.message || "Failed to submit report.",
       });
     } finally {
       setSubmitting(false);
@@ -113,9 +116,9 @@ export default function ReportLost() {
   return (
     <section className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Report Lost Item</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Report Found Item</h1>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Create a new report so others can help you find it.
+          Share details of the item you found so the owner can recognise and claim it.
         </p>
       </div>
 
@@ -125,7 +128,7 @@ export default function ReportLost() {
             "rounded-2xl border p-4 text-sm",
             alert.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
-              : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+              : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200",
           ].join(" ")}
         >
           {alert.message}
@@ -139,13 +142,13 @@ export default function ReportLost() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              Lost Item name <span className="text-rose-500">*</span>
+              Found Item name <span className="text-rose-500">*</span>
             </span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
-              placeholder="e.g. Black Wallet"
+              placeholder="e.g., Smartphone"
             />
           </label>
 
@@ -176,14 +179,14 @@ export default function ReportLost() {
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
-            placeholder="You lost it, but where did you last kept it?"
+            placeholder="Where did you find this item? Tell us about it."
           />
         </label>
 
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              Lost at <span className="text-rose-500">*</span>
+              Found at <span className="text-rose-500">*</span>
             </span>
             <select
               value={location}
@@ -245,11 +248,7 @@ export default function ReportLost() {
             </div>
             <div className="mt-3 h-40 overflow-hidden rounded-xl bg-white shadow-sm dark:bg-slate-950">
               {imagePreview ? (
-                <ImageWithPreview
-                  src={imagePreview}
-                  alt="Upload preview"
-                  className="cursor-zoom-in"
-                />
+                <ImageWithPreview src={imagePreview} alt="Upload preview" className="cursor-zoom-in" />
               ) : (
                 <div className="grid h-full place-items-center text-xs text-slate-500 dark:text-slate-400">
                   No image selected

@@ -37,6 +37,11 @@ export async function addLostItem(payload) {
   return res.data;
 }
 
+export async function addFoundItem(payload) {
+  const res = await api.post("/api/lost/add", { ...payload, reportedAs: "found" });
+  return res.data;
+}
+
 export async function fetchMyReports() {
   const res = await api.get("/api/lost/my-reports");
   return res.data?.items ?? [];

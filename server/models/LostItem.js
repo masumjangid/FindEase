@@ -6,6 +6,7 @@ const lostItemSchema = new mongoose.Schema(
     category: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
     image: { type: String, default: "" },
+    reportedAs: { type: String, enum: ["lost", "found"], default: "lost" },
     status: { type: String, default: "Pending" },
     approved: { type: Boolean, default: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
