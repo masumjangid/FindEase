@@ -74,7 +74,7 @@ router.get("/", ensureDbReady, verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Admin: update claim status (contacted, returned, closed)
+// Admin: update claim status (contacted, returned, closed) and sync to LostItem
 router.patch("/:id", ensureDbReady, verifyToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -86,12 +86,23 @@ router.patch("/:id", ensureDbReady, verifyToken, requireAdmin, async (req, res) 
     if (!allowed.includes(status)) {
       return res.status(400).json({ message: "Invalid status." });
     }
-    const claim = await Claim.findByIdAndUpdate(id, { status }, { new: true })
+    const claim = await Claim.findById(id).populate("item").lean();
+    if (!claim) return res.status(404).json({ message: "Claim not found." });
+
+    await Claim.findByIdAndUpdate(id, { status });
+
+    if (claim.item && ["contacted", "returned", "closed"].includes(status)) {
+      await LostItem.findByIdAndUpdate(claim.item._id, {
+        resolutionStatus: status,
+        resolutionAt: new Date(),
+      });
+    }
+
+    const updated = await Claim.findById(id)
       .populate("item", "name category")
       .populate("claimedBy", "name email")
       .lean();
-    if (!claim) return res.status(404).json({ message: "Claim not found." });
-    return res.status(200).json({ message: "Claim updated.", claim });
+    return res.status(200).json({ message: "Claim updated.", claim: updated });
   } catch (err) {
     return res.status(500).json({ message: "Server error.", error: err?.message });
   }

@@ -83,7 +83,12 @@ export default function MyReports() {
                 ) : (
                   <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-200 dark:bg-slate-700" />
                 )}
-                <span className="min-w-0 flex-1 font-medium text-slate-900 dark:text-slate-100">{i.name}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{i.name}</span>
+                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                    ({(i.location || "").toLowerCase() === "other" ? (i.locationOtherText || "Other") : (i.location || "-")})
+                  </span>
+                </div>
                 <span
                   className={
                     i.approved

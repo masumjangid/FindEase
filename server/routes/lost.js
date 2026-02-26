@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const LostItem = require("../models/LostItem");
 const { verifyToken, requireAdmin } = require("../middleware/auth");
+const { runArchiveCleanup, TWENTY_FOUR_HOURS_MS } = require("../utils/archiveResolved");
 
 const router = express.Router();
 
@@ -15,10 +16,18 @@ function ensureDbReady(req, res, next) {
 // Add lost item (authenticated user only); starts as not approved
 router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
   try {
-    const { name, category, description, image } = req.body || {};
+    const { name, category, description, image, location, locationOtherText, locationSupportingText } = req.body || {};
 
     if (!name?.trim() || !category?.trim() || !description?.trim()) {
       return res.status(400).json({ message: "name, category, and description are required." });
+    }
+
+    const loc = (location && typeof location === "string") ? location.trim() : "";
+    const locOther = (locationOtherText && typeof locationOtherText === "string") ? locationOtherText.trim() : "";
+    const locSupport = (locationSupportingText && typeof locationSupportingText === "string") ? locationSupportingText.trim() : "";
+
+    if (loc.toLowerCase() === "other" && !locOther) {
+      return res.status(400).json({ message: "Please specify the location when 'Other' is selected." });
     }
 
     const item = await LostItem.create({
@@ -26,6 +35,9 @@ router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
       category: category.trim(),
       description: description.trim(),
       image: typeof image === "string" ? image : "",
+      location: loc,
+      locationOtherText: locOther,
+      locationSupportingText: locSupport,
       approved: false,
       createdBy: req.user._id,
     });
@@ -50,13 +62,29 @@ router.get("/all", ensureDbReady, async (req, res) => {
   }
 });
 
-// Public or optional auth: "approved" list for dashboard (only approved, recent)
+// Public: "approved" list for dashboard (approved, not archived, and resolved items only within 24h)
 router.get("/approved", ensureDbReady, async (req, res) => {
   try {
-    const items = await LostItem.find({ approved: true })
+    await runArchiveCleanup();
+
+    const now = Date.now();
+    const cutoff = new Date(now - TWENTY_FOUR_HOURS_MS);
+
+    const items = await LostItem.find({
+      approved: true,
+      archived: { $ne: true },
+      $or: [
+        { resolutionStatus: { $in: [null, ""] } },
+        {
+          resolutionStatus: { $in: ["contacted", "returned", "closed"] },
+          resolutionAt: { $gte: cutoff },
+        },
+      ],
+    })
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 })
       .lean();
+
     return res.status(200).json({ items });
   } catch (err) {
     return res.status(500).json({ message: "Server error.", error: err?.message });

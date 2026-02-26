@@ -5,6 +5,20 @@ import { addLostItem } from "../lib/api.js";
 
 const CATEGORIES = ["Electronics", "ID Cards", "Books", "Clothing", "Accessories", "Other"];
 
+const LOCATION_OPTIONS = [
+  "Other",
+  "Academic block front",
+  "Cafegram",
+  "PU canteen",
+  "Cafe behind canteen",
+  "Boys hostel front",
+  "Mess front",
+  "American football ground",
+  "Basketball court",
+  "Tennis court",
+  "Library",
+];
+
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -18,13 +32,22 @@ export default function ReportLost() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState(LOCATION_OPTIONS[0]);
+  const [locationOtherText, setLocationOtherText] = useState("");
+  const [locationSupportingText, setLocationSupportingText] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
 
-  const canSubmit = useMemo(() => name.trim() && category.trim() && description.trim(), [name, category, description]);
+  const isOtherLocation = location === "Other";
+  const canSubmit = useMemo(() => {
+    const base = name.trim() && category.trim() && description.trim();
+    if (!base) return false;
+    if (isOtherLocation) return locationOtherText.trim().length > 0;
+    return true;
+  }, [name, category, description, isOtherLocation, locationOtherText]);
 
   async function handleImageChange(e) {
     const file = e.target.files?.[0];
@@ -62,13 +85,19 @@ export default function ReportLost() {
         name: name.trim(),
         category: category.trim(),
         description: description.trim(),
-        image: image || undefined
+        image: image || undefined,
+        location: location.trim(),
+        locationOtherText: isOtherLocation ? locationOtherText.trim() : "",
+        locationSupportingText: locationSupportingText.trim() || undefined,
       });
 
       setAlert({ type: "success", message: "Report submitted. It will appear on the dashboard after admin approval." });
       setName("");
       setCategory(CATEGORIES[0]);
       setDescription("");
+      setLocation(LOCATION_OPTIONS[0]);
+      setLocationOtherText("");
+      setLocationSupportingText("");
       setImageFile(null);
       setImagePreview("");
     } catch (err) {
@@ -148,6 +177,48 @@ export default function ReportLost() {
             rows={4}
             className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
             placeholder="Where did you last see it? Any identifying details?"
+          />
+        </label>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              Lost at <span className="text-rose-500">*</span>
+            </span>
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
+            >
+              {LOCATION_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </label>
+          {isOtherLocation ? (
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                Specify location <span className="text-rose-500">*</span>
+              </span>
+              <input
+                value={locationOtherText}
+                onChange={(e) => setLocationOtherText(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
+                placeholder="Enter the place name"
+              />
+            </label>
+          ) : null}
+        </div>
+
+        <label className="mt-4 block space-y-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Supporting details (optional)</span>
+          <input
+            value={locationSupportingText}
+            onChange={(e) => setLocationSupportingText(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-slate-200 focus:ring-4 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-800"
+            placeholder="e.g. near the stairs, under bench"
           />
         </label>
 

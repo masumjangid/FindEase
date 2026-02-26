@@ -104,6 +104,10 @@ export default function Admin() {
                   <div>
                   <span className="font-medium text-slate-900 dark:text-slate-100">{item.name}</span>
                   <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{item.category}</span>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Lost at: {(item.location || "").toLowerCase() === "other" ? (item.locationOtherText || "Other") : (item.location || "-")}
+                    {item.locationSupportingText ? ` — ${item.locationSupportingText}` : ""}
+                  </p>
                   {item.createdBy?.email && (
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                       Reported by: {item.createdBy.email}

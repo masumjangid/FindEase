@@ -7,7 +7,6 @@ import { useAuth } from "../context/AuthContext.jsx";
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAdmin } = useAuth();
-
   const isDark = theme === "dark";
   const logoSrc = isDark ? "/fe-logo-dark.png" : "/fe-logo-light.png";
 
