@@ -8,15 +8,22 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [department, setDepartment] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (!department) {
+      setError("Please select your department.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await signup(name.trim(), email.trim(), password);
+      await signup(name.trim(), email.trim(), password, department);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err?.response?.data?.message || "Sign up failed.");
@@ -71,6 +78,30 @@ export default function Signup() {
               placeholder="you@poornima.edu.in"
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
             />
+          </label>
+          <label htmlFor="signup-department" className="block">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Department</span>
+            <select
+              id="signup-department"
+              name="department"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <option value="" disabled>
+                Select department
+              </option>
+              <option value="FCE">FCE</option>
+              <option value="FET">FET</option>
+              <option value="FDA">FDA</option>
+              <option value="FMC">FMC</option>
+              <option value="FSH">FSH</option>
+              <option value="FPA">FPA</option>
+              <option value="FPH">FPH</option>
+              <option value="PIHM">PIHM</option>
+              <option value="FIRE">FIRE</option>
+            </select>
           </label>
           <label htmlFor="signup-password" className="block">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Password (min 6)</span>

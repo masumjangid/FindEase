@@ -1,11 +1,19 @@
-import React, { useEffect, useState } from "react";
-import {
-  fetchPendingItems,
-  approveItem,
-  fetchClaims,
-  updateClaimStatus,
-} from "../lib/api.js";
+import React, { useEffect, useMemo, useState } from "react";
+import { fetchPendingItems, approveItem, fetchClaims, updateClaimStatus } from "../lib/api.js";
 import { ImageWithPreview } from "../components/ImageLightbox.jsx";
+
+const DEPARTMENT_FILTER_OPTIONS = [
+  "All",
+  "FCE",
+  "FET",
+  "FDA",
+  "FMC",
+  "FSH",
+  "FPA",
+  "FPH",
+  "PIHM",
+  "FIRE",
+];
 
 export default function Admin() {
   const [pending, setPending] = useState([]);
@@ -13,6 +21,7 @@ export default function Admin() {
   const [loadingPending, setLoadingPending] = useState(true);
   const [loadingClaims, setLoadingClaims] = useState(true);
   const [error, setError] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
 
   function loadPending() {
     setLoadingPending(true);
@@ -34,6 +43,16 @@ export default function Admin() {
     loadPending();
     loadClaims();
   }, []);
+
+  const filteredPending = useMemo(() => {
+    if (departmentFilter === "All") return pending;
+    const target = departmentFilter.toLowerCase();
+    return pending.filter((item) => {
+      const dept = item.createdBy?.department;
+      if (!dept) return false;
+      return dept.toLowerCase() === target;
+    });
+  }, [pending, departmentFilter]);
 
   async function handleApprove(id) {
     try {
@@ -76,13 +95,29 @@ export default function Admin() {
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Approve items so they are visible to everyone on the dashboard.
         </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Filter by department:
+          </span>
+          <select
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          >
+            {DEPARTMENT_FILTER_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
         {loadingPending ? (
           <p className="mt-4 text-sm text-slate-500">Loading…</p>
-        ) : pending.length === 0 ? (
+        ) : filteredPending.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">No pending items.</p>
         ) : (
           <ul className="mt-4 space-y-3">
-            {pending.map((item) => {
+            {filteredPending.map((item) => {
               const hasImage = item.image && item.image.startsWith("data:");
               return (
               <li
@@ -102,17 +137,29 @@ export default function Admin() {
                     <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-200 dark:bg-slate-700" />
                   )}
                   <div>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">{item.name}</span>
-                  <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">{item.category}</span>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Lost at: {(item.location || "").toLowerCase() === "other" ? (item.locationOtherText || "Other") : (item.location || "-")}
-                    {item.locationSupportingText ? ` — ${item.locationSupportingText}` : ""}
-                  </p>
-                  {item.createdBy?.email && (
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      {item.name}
+                    </span>
+                    <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">
+                      {item.category}
+                    </span>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Reported by: {item.createdBy.email}
+                      Lost at:{" "}
+                      {(item.location || "").toLowerCase() === "other"
+                        ? item.locationOtherText || "Other"
+                        : item.location || "-"}
+                      {item.locationSupportingText
+                        ? ` — ${item.locationSupportingText}`
+                        : ""}
                     </p>
-                  )}
+                    {item.createdBy?.email && (
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Reported by: {item.createdBy.email}
+                        {item.createdBy.department
+                          ? ` — ${item.createdBy.department}`
+                          : ""}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <button

@@ -6,6 +6,7 @@ const { verifyToken, JWT_SECRET } = require("../middleware/auth");
 
 const router = express.Router();
 const ALLOWED_DOMAIN = "poornima.edu.in";
+const { DEPARTMENT_VALUES } = User;
 
 function ensureDbReady(req, res, next) {
   if (mongoose.connection.readyState !== 1) {
@@ -23,10 +24,25 @@ function validateEmailDomain(email) {
 // Signup – only @poornima.edu.in
 router.post("/signup", ensureDbReady, async (req, res) => {
   try {
-    const { name, email, password } = req.body || {};
+    const { name, email, password, department } = req.body || {};
 
     if (!name?.trim() || !email?.trim() || !password) {
       return res.status(400).json({ message: "Name, email, and password are required." });
+    }
+
+    const rawDepartment =
+      department && typeof department === "string" ? department.trim() : "";
+    if (!rawDepartment) {
+      return res.status(400).json({ message: "Department is required." });
+    }
+
+    const normalizedDepartment =
+      DEPARTMENT_VALUES.find(
+        (d) => d.toLowerCase() === rawDepartment.toLowerCase()
+      ) || null;
+
+    if (!normalizedDepartment) {
+      return res.status(400).json({ message: "Invalid department selected." });
     }
 
     if (!validateEmailDomain(email)) {
@@ -48,13 +64,20 @@ router.post("/signup", ensureDbReady, async (req, res) => {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password,
+      department: normalizedDepartment,
       role: "user",
     });
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
     return res.status(201).json({
       message: "Account created.",
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+      },
       token,
     });
   } catch (err) {
@@ -90,7 +113,13 @@ router.post("/login", ensureDbReady, async (req, res) => {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
     return res.status(200).json({
       message: "Logged in.",
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+      },
       token,
     });
   } catch (err) {
@@ -106,6 +135,7 @@ router.get("/me", ensureDbReady, verifyToken, (req, res) => {
       name: req.user.name,
       email: req.user.email,
       role: req.user.role,
+      department: req.user.department,
     },
   });
 });

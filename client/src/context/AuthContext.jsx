@@ -50,8 +50,8 @@ export function AuthProvider({ children }) {
   );
 
   const signup = useCallback(
-    async (name, email, password) => {
-      const data = await authApi.signup(name, email, password);
+    async (name, email, password, department) => {
+      const data = await authApi.signup(name, email, password, department);
       setToken(data.token);
       setUser(data.user);
       return data;

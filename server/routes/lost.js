@@ -68,7 +68,7 @@ router.post("/add", ensureDbReady, verifyToken, async (req, res) => {
 router.get("/all", ensureDbReady, async (req, res) => {
   try {
     const items = await LostItem.find({})
-      .populate("createdBy", "name email")
+      .populate("createdBy", "name email department")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -97,7 +97,7 @@ router.get("/approved", ensureDbReady, async (req, res) => {
         },
       ],
     })
-      .populate("createdBy", "name email")
+      .populate("createdBy", "name email department")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -111,7 +111,7 @@ router.get("/approved", ensureDbReady, async (req, res) => {
 router.get("/pending", ensureDbReady, verifyToken, requireAdmin, async (req, res) => {
   try {
     const items = await LostItem.find({ approved: false })
-      .populate("createdBy", "name email")
+      .populate("createdBy", "name email department")
       .sort({ createdAt: -1 })
       .lean();
     return res.status(200).json({ items });

@@ -16,8 +16,8 @@ api.interceptors.request.use((config) => {
 
 export const authApi = {
   login: (email, password) => api.post("/api/auth/login", { email, password }).then((r) => r.data),
-  signup: (name, email, password) =>
-    api.post("/api/auth/signup", { name, email, password }).then((r) => r.data),
+  signup: (name, email, password, department) =>
+    api.post("/api/auth/signup", { name, email, password, department }).then((r) => r.data),
   getMe: () => api.get("/api/auth/me").then((r) => r.data),
 };
 
