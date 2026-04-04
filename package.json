@@ -1,0 +1,15 @@
+{
+  "name": "findease",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["client", "server"],
+  "scripts": {
+    "dev": "concurrently -n server,client -c yellow,cyan \"npm -w server run dev\" \"npm -w client run dev\"",
+    "dev:server": "npm -w server run dev",
+    "dev:client": "npm -w client run dev"
+  },
+  "dependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
+
