@@ -8,8 +8,8 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAdmin } = useAuth();
   const isDark = theme === "dark";
-  const logoSrc = isDark ? "/fe-logo-dark.png" : "/fe-logo-light.png";
-
+  const logoSrc = "/PU.png";
+  
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4">
