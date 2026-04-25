@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { Moon, Sun, LogOut, User } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import logo from "../PUFindEase.png"; // ✅ FIXED
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAdmin } = useAuth();
   const isDark = theme === "dark";
+
+  const logoSrc = "/PU.png"; // ✅ FIXED (from public)
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
@@ -16,7 +17,7 @@ export default function Navbar() {
         
         <div className="flex items-center gap-2 sm:gap-2.5">
           <img
-            src={logo}  //FIXED
+            src={logoSrc}
             alt="FindEase logo"
             className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9 md:h-10 md:w-10"
           />
